@@ -1,22 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpEvent, HttpInterceptor, HttpRequest, HttpResponse, HttpErrorResponse } from '@angular/common/http';
-
 import { Observable } from 'rxjs';
 import { of } from 'rxjs/observable/of';
 
-// ...
-// Example of user credentials to match against incoming credentials.
-const username  = 'me@domain.com';
-const password  = 'password';
+const username  = 't';
+const password  = '12345678';
+const friends   = ['alice', 'bob','rambo'];
 
-// list of friends to return when the route /api/friends is invoked.
-const friends   = ['alice', 'bob']
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
-// the hardcoded JWT access token you created @ jwt.io.
-const token = '';
-
-// ...
-// Use these methods in the implementation of the intercept method below to return either a success or failure response.
 const makeError = (status, error) => {
     return Observable.throw(
         new HttpErrorResponse({
@@ -35,8 +27,6 @@ const makeResponse = body => {
     );
 };
 
-// ...
-
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
@@ -48,8 +38,29 @@ export class AuthInterceptor implements HttpInterceptor {
         url,        // string
     } = req;
 
-    return;
-
-    // implement logic for handling API requests, as defined in the exercise instructions.
+    if(url === '/login') {
+      if (body.username === username && body.password === password) {
+        return makeResponse({
+           token: token
+          })
+      }else{
+        console.log('error');
+        return makeError(500, {});
+      }
+    }else if(url === '/friends'){
+      if(headers.has('Authorization')){
+        if(headers.get("Authorization") === `Bearer ${token}`){
+          return makeResponse({
+            friends
+          })
+        }else{
+          return makeError(401, 'Unauthorized token')
+        }
+      }else{
+        return makeError(400, 'No authorization token')
+      }
+    }else{
+      return makeError(500, {})
+    }
   }
 }
